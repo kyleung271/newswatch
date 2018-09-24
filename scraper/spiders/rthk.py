@@ -1,5 +1,6 @@
 import re
 from datetime import date as Date
+from datetime import datetime as Datetime
 from itertools import product
 
 import scrapy
@@ -13,9 +14,13 @@ category_re = re.compile(r'class="pathway">(\w+)</a>')
 class RTHKSpider(scrapy.Spider):
     name = "rthk"
 
-    def start_requests(self, start_date=Date(2018, 1, 1)):
+    def __init__(self, start_date=Date(2018, 1, 1), **kwargs):
+        self.start_date = start_date
+        super().__init__(**kwargs)
+
+    def start_requests(self):
         url = "http://news.rthk.hk/rthk/ch/news-archive.htm"
-        dates = rrule(DAILY, dtstart=start_date, until=Date.today())
+        dates = rrule(DAILY, dtstart=self.start_date, until=Date.today())
 
         for date, category in product(dates, range(7)):
             kwargs = dict(
@@ -46,6 +51,7 @@ class RTHKSpider(scrapy.Spider):
 
         date = response.css("div.createddate::text").extract_first()
         date = date.replace(" HKT ", " ")
+        date = Datetime.strptime(date, "%Y-%m-%d %H:%M")
 
         title = response.css("div.itemHeader .itemTitle::text").extract_first()
 

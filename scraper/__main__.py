@@ -24,7 +24,7 @@ from spiders.wenweipo import WenWeiPoSpider
 
 def main():
     args = docopt(__doc__)
-    start_date = Datetime.strptime(args["-S"], "%Y-%m-%d")
+    start_date = Datetime.strptime(args["-S"], "%Y-%m-%d").date()
 
     process = CrawlerProcess(dict(
         FEED_URI=args["OUTPUT"],

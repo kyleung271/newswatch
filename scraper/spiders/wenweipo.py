@@ -1,4 +1,5 @@
 from datetime import date as Date
+from datetime import datetime as Datetime
 
 import scrapy
 from dateutil.rrule import DAILY, rrule
@@ -9,8 +10,12 @@ from items import Article
 class WenWeiPoSpider(scrapy.Spider):
     name = "wenweipo"
 
-    def start_requests(self, start_date=Date(2018, 1, 1)):
-        dates = rrule(DAILY, dtstart=start_date, until=Date.today())
+    def __init__(self, start_date=Date(2018, 1, 1), **kwargs):
+        self.start_date = start_date
+        super().__init__(**kwargs)
+
+    def start_requests(self):
+        dates = rrule(DAILY, dtstart=self.start_date, until=Date.today())
         for date in dates:
             url = f"http://pdf.wenweipo.com/{date:%Y/%m/%d}/pdf1.htm"
             yield scrapy.Request(url=url, callback=self.parse_page)
@@ -31,6 +36,7 @@ class WenWeiPoSpider(scrapy.Spider):
 
         title = response.css("h1.title::text").extract_first()
         date = response.css("span.date::text").extract_first()
+        date = Datetime.strptime(date, "%Y-%m-%d")
 
         text = response.css(
             "div#main-content p:not(.connect-pdf)::text").extract()
